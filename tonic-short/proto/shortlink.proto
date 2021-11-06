@@ -1,0 +1,16 @@
+syntax = "proto3";
+package shortlink;
+
+
+service ShortLink {
+	rpc GetInfo(ShortLinkRequest) returns (ShortLinkResponse);
+}
+
+
+message ShortLinkRequest {
+    string id = 1;
+}
+
+message ShortLinkResponse {
+    string url = 1;
+}

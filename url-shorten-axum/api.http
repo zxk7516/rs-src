@@ -1,0 +1,22 @@
+### create short link
+POST http://localhost:3412/api/create_short
+Content-Type: application/json
+
+{
+    "url": "https://www.google.com"
+}
+
+
+### get short redirect
+GET http://localhost:3412/AAAAAw==
+
+
+
+
+### delete short link
+POST http://localhost:3412/api/delete_short
+Content-Type: application/json
+
+{
+    "id": 10
+}

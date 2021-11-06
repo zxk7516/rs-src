@@ -1,0 +1,10 @@
+databend
+gcsf
+MeiliSearch
+rust-analyzer
+sea-orm
+tokio
+webapp.rs
+web-one-axum
+**/target
+**/Cargo.lock

@@ -61,7 +61,6 @@ pub async fn create_short_link(
     pool: &DBPool,
     url: &str,
 ) -> Result<i32, Error> {
-    use sqlx::Executor;
 
     let exists: Result<ReturningId<i32>, Error> =
         sqlx::query_as(r#"select id from short_links where url = $1"#)

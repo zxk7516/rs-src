@@ -8,16 +8,16 @@ pub mod handlers;
 pub mod models;
 
 use axum::{
-    handler::{
+    error_handling::HandleErrorLayer,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{
         get,
         post,
     },
-    http::StatusCode,
-    Router,
-};
-use axum::{
     AddExtensionLayer,
     BoxError,
+    Router,
 };
 
 use handlers::{
@@ -57,31 +57,29 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let pool: DBPool = DBOptions::new().connect(DB_URL).await?;
 
     println!("db pool created");
+    fn handle_error(error: BoxError) -> impl IntoResponse {
+        let result = if error.is::<tower::timeout::error::Elapsed>() {
+            Ok(StatusCode::REQUEST_TIMEOUT)
+        } else {
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Unhandled internal error: {}", error),
+            ))
+        };
+        Ok::<_, Infallible>(result)
+    }
+    let middleware_stack = ServiceBuilder::new()
+        .layer(TraceLayer::new_for_http())
+        .layer(AddExtensionLayer::new(pool))
+        .layer(HandleErrorLayer::new(handle_error))
+        .timeout(Duration::from_secs(10));
 
     let app = Router::new()
         .route("/", get(root))
         .route("/api/create_short", post(create_short))
         .route("/api/delete_short", post(delete_short))
         .route("/:id", get(get_short))
-        .layer(
-            ServiceBuilder::new()
-                .timeout(Duration::from_secs(10))
-                .layer(TraceLayer::new_for_http())
-                .layer(AddExtensionLayer::new(pool))
-                .into_inner(),
-        )
-        .handle_error(|error: BoxError| {
-            let result = if error.is::<tower::timeout::error::Elapsed>() {
-                Ok(StatusCode::REQUEST_TIMEOUT)
-            } else {
-                Err((
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("Unhandled internal error: {}", error),
-                ))
-            };
-            Ok::<_, Infallible>(result)
-        })
-        .check_infallible();
+        .layer(middleware_stack);
     println!("app initialized");
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3412));

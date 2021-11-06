@@ -7,7 +7,6 @@ use axum::{
     },
     http::{
         HeaderMap,
-        Response,
         StatusCode,
     },
     response::IntoResponse,
@@ -17,12 +16,10 @@ use axum::{
 use crate::dto::{
     CreateLinkResp,
     CreateShortLinkReq,
-    CreateUserResp,
     IdentifyContentyById,
 };
 use crate::{
     DBPool,
-    QueryResult,
 };
 
 const EMPTY_STRING: String = String::new();
@@ -88,9 +85,9 @@ pub async fn get_short(
                         Err(_e) => (StatusCode::NOT_FOUND, resp_header),
                     }
                 }
-                Err(e) => (StatusCode::BAD_REQUEST, resp_header),
+                Err(_e) => (StatusCode::BAD_REQUEST, resp_header),
             }
         }
-        Err(e) => (StatusCode::BAD_REQUEST, resp_header),
+        Err(_e) => (StatusCode::BAD_REQUEST, resp_header),
     }
 }

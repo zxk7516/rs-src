@@ -18,9 +18,7 @@ use crate::dto::{
     CreateShortLinkReq,
     IdentifyContentyById,
 };
-use crate::{
-    DBPool,
-};
+use crate::DBPool;
 
 const EMPTY_STRING: String = String::new();
 
@@ -69,8 +67,8 @@ pub async fn get_short(
     Path(short_str): Path<String>,
     Extension(pool): Extension<DBPool>,
 ) -> impl IntoResponse {
-    let bytes = base64::decode(&short_str);
     let mut resp_header = HeaderMap::new();
+    let bytes = base64::decode(&short_str);
     match bytes {
         Ok(b) => {
             let b1: Result<[u8; 4], _> = b.try_into();

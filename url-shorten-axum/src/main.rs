@@ -47,7 +47,7 @@ async fn root() -> &'static str {
 }
 
 #[cfg(feature = "mysql")]
-const DB_URL: &'static str = "mysql://root:root@127.0.0.1/short_links?useSSL=false";
+const DB_URL: &'static str = "mysql://root:root@127.0.0.1/short_links";
 #[cfg(feature = "postgres")]
 const DB_URL: &'static str = "postgres://127.0.0.1/short_links?useSSL=false";
 
@@ -58,15 +58,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     println!("db pool created");
     fn handle_error(error: BoxError) -> impl IntoResponse {
-        let result = if error.is::<tower::timeout::error::Elapsed>() {
-            Ok(StatusCode::REQUEST_TIMEOUT)
+        if error.is::<tower::timeout::error::Elapsed>() {
+            (StatusCode::REQUEST_TIMEOUT, ())
         } else {
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Unhandled internal error: {}", error),
-            ))
-        };
-        Ok::<_, Infallible>(result)
+            (StatusCode::INTERNAL_SERVER_ERROR, ())
+        }
     }
     let middleware_stack = ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())

@@ -61,7 +61,6 @@ pub async fn create_short_link(
     pool: &DBPool,
     url: &str,
 ) -> Result<i32, Error> {
-
     let exists: Result<ReturningId<i32>, Error> =
         sqlx::query_as(r#"select id from short_links where url = $1"#)
             .bind(url)
@@ -71,7 +70,7 @@ pub async fn create_short_link(
         Ok(exists.unwrap().id)
     } else {
         let insert_res: Result<ReturningId<i32>, Error> = sqlx::query_as(
-            //         r#"
+            // r#"
             // INSERT INTO short_links ("url") VALUES ($1) ON CONFLICT ON CONSTRAINT short_links_url_key DO UPDATE set url = excluded.url returning id
             // "#,
             r#"

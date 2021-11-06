@@ -6,5 +6,6 @@ sea-orm
 tokio
 webapp.rs
 web-one-axum
+rbatis
 **/target
 **/Cargo.lock

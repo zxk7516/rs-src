@@ -8,5 +8,6 @@ webapp.rs
 web-one-axum
 rbatis
 rbatis-core
+rbatis_sql
 **/target
 **/Cargo.lock

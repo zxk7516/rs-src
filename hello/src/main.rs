@@ -1,10 +1,12 @@
 #![feature(generators, generator_trait)]
+#![feature(exclusive_range_pattern)]
 use std::{
     fs::File,
     io::{
         self,
         Read,
     },
+    marker::PhantomPinned,
     ops::{
         ControlFlow,
         Generator,
@@ -18,44 +20,150 @@ use futures::future::{
     Future,
 };
 
-async fn example(min_len: usize) -> String {
-    let content = async_read_file("foo.txt").await.unwrap();
-    if content.len() < min_len {
-        content + &async_read_file("bar.txt").await.unwrap()
-    } else {
-        content
-    }
-}
+// async fn example(min_len: usize) -> String {
+//     let content = async_read_file("foo.txt").await.unwrap();
+//     if content.len() < min_len {
+//         content + &async_read_file("bar.txt").await.unwrap()
+//     } else {
+//         content
+//     }
+// }
+
+// struct BlackRedTree<T> {
+//     black: bool,
+//     value: T,
+//     left: Option<Box<BlackRedTree<T>>>,
+//     right: Option<Box<BlackRedTree<T>>>,
+// }
+//
+// impl BlackRedTree<T> {
+//     fn new(value: T) -> Self {
+//         BlackRedTree {
+//             black: true,
+//             value,
+//             left: None,
+//             right: None,
+//         }
+//     }
+//
+//     fn insert(
+//         &mut self,
+//         v: T,
+//     ) -> () {
+//     }
+// }
 
 // 1 Start
 // 2 Waiting for future `foo.txt`
 // 3 Waiting for future `bar.txt`
 // 4 End
 
-fn async_read_file(name: &str) -> impl Future<Output = io::Result<String>> {
-    let mut file = File::open(name).unwrap();
-    let mut buf = String::new();
-    file.read_to_string(&mut buf);
-    future::ready(Ok(buf))
-}
+// fn async_read_file(name: &str) -> impl Future<Output = io::Result<String>> {
+//     let mut file = File::open(name).unwrap();
+//     let mut buf = String::new();
+//     file.read_to_string(&mut buf);
+//     future::ready(Ok(buf))
+// }
 
 fn main() {
-    let mut generator = || {
-        yield 1;
-        return "foo";
-    };
-    loop {
-        match Pin::new(&mut generator).resume(()) {
-            GeneratorState::Yielded(1) => {}
-            GeneratorState::Complete("foo") => {
-                break;
-            }
-            _ => {
-                eprintln!("resume ofter completion!");
+    use std::pin::Pin;
+    #[derive(Debug)]
+    struct Test {
+        a: String,
+        b: *const String,
+        _marker: std::marker::PhantomPinned,
+    }
+
+    impl Test {
+        fn new(txt: &str) -> Self {
+            Test {
+                a: String::from(txt),
+                b: std::ptr::null(),
+                _marker: PhantomPinned,
             }
         }
+        fn init<'a>(self: Pin<&'a mut Self>) {
+            let self_ptr: *const String = &self.a;
+            let this = unsafe { self.get_unchecked_mut() };
+            this.b = self_ptr;
+        }
+        fn a<'a>(self: Pin<&'a Self>) -> &'a str {
+            &self.get_ref().a
+        }
+        fn b<'a>(self: Pin<&'a Self>) -> &'a String {
+            unsafe { &*(self.b) }
+        }
     }
+
+    let mut test1 = Test::new("test1");
+    let mut test1 = unsafe { Pin::new_unchecked(&mut test1) };
+    Test::init(test1.as_mut());
+
+    let mut test2 = Test::new("test2");
+    let mut test2 = unsafe { Pin::new_unchecked(&mut test2) };
+    Test::init(test2.as_mut());
+
+    println!(
+        "a: {}, b: {}",
+        Test::a(test1.as_ref()),
+        Test::b(test1.as_ref())
+    );
+    println!(
+        "a: {}, b: {}",
+        Test::a(test2.as_ref()),
+        Test::b(test2.as_ref())
+    );
+
+    std::mem::swap(&mut test1, &mut test2);
+    // std::mem::swap(test1.get_mut(), test2.get_mut());
+    println!(
+        "a: {}, b: {}",
+        Test::a(test1.as_ref()),
+        Test::b(test1.as_ref())
+    );
+    println!(
+        "a: {}, b: {}",
+        Test::a(test2.as_ref()),
+        Test::b(test2.as_ref())
+    );
 }
+
+// fn m() {
+//     for i in 0..10 {
+//         match i {
+//             i @ 1..3 => println!("{} is in [1,3)", i),
+//             i @ 3..5 => println!("{} is in [3,5)", i),
+//             i @ 5..7 => println!("{} is in [5,7)", i),
+//             _ => println!("i"),
+//         }
+//     }
+//     for i in 0..10 {
+//         match i {
+//             i @ 1..3 => println!("{} is in [1,3)", i),
+//             i @ 3..5 => println!("{} is in [3,5)", i),
+//             i @ 5..7 => println!("{} is in [5,7)", i),
+//             _ => println!("i"),
+//         }
+//     }
+// }
+
+// fn main() {
+//     let mut generator = || {
+//         yield 1;
+//         return "foo";
+//     };
+//     loop {
+//         match Pin::new(&mut generator).resume(()) {
+//             GeneratorState::Yielded(1) => {}
+//             GeneratorState::Complete("foo") => {
+//                 break;
+//             }
+//             _ => {
+//                 eprintln!("resume ofter completion!");
+//             }
+//         }
+//     }
+// }
 
 // fn main() {
 //     enum Po {

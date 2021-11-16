@@ -11,3 +11,4 @@ rbatis-core
 rbatis_sql
 **/target
 **/Cargo.lock
+lmdb-rs

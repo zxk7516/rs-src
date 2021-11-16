@@ -8,6 +8,9 @@ mod l459;
 mod l460;
 mod l461;
 mod l462;
+mod l1910;
+
+
 
 pub fn num_square(n: i32) -> i32 {
     let n = n as usize;

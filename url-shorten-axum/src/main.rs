@@ -1,4 +1,3 @@
-use std::convert::Infallible;
 use std::error::Error;
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -54,7 +53,13 @@ const DB_URL: &'static str = "postgres://127.0.0.1/short_links?useSSL=false";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     println!("before start");
-    let pool: DBPool = DBOptions::new().connect(DB_URL).await?;
+    let url = std::env::var("URLSHORTER_DB");
+    let pool: DBPool = DBOptions::new()
+        .connect(match url {
+            Ok(ref u) => &u,
+            _ => DB_URL,
+        })
+        .await?;
 
     println!("db pool created");
     fn handle_error(error: BoxError) -> impl IntoResponse {

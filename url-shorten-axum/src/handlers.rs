@@ -28,7 +28,7 @@ pub async fn create_short(
 ) -> impl IntoResponse {
     match crate::models::create_short_link(&pool, &req.url).await {
         Ok(last_insert_id) => {
-            let bytes = last_insert_id.to_be_bytes();
+            let bytes = last_insert_id.to_le_bytes();
             let s = base64::encode(&bytes);
             (
                 StatusCode::OK,
@@ -74,7 +74,7 @@ pub async fn get_short(
             let b1: Result<[u8; 4], _> = b.try_into();
             match b1 {
                 Ok(bb) => {
-                    let id: i32 = i32::from_be_bytes(bb);
+                    let id: i32 = i32::from_le_bytes(bb);
                     match crate::models::get_short_link(&pool, id).await {
                         Ok(_r) => {
                             resp_header.insert("location", _r.url.parse().unwrap());

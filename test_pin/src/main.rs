@@ -31,4 +31,6 @@ fn main() {
     while let GeneratorState::Yielded(n) = Pin::new(&mut gen1).resume(()) {
         println!("Got number: {}", n);
     }
+    // let foo = Pin::new(&mut gen1).resume(()); 
+    // error: while let has already comsume the Generator::Complete then break out of the loop.
 }

@@ -1,4 +1,5 @@
 databend
+intrusive-rs
 gcsf
 MeiliSearch
 rust-analyzer

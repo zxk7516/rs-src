@@ -50,6 +50,10 @@ const DB_URL: &'static str = "mysql://root:root@127.0.0.1/short_links";
 #[cfg(feature = "postgres")]
 const DB_URL: &'static str = "postgres://127.0.0.1/short_links?useSSL=false";
 
+async fn handle_error<T>(_error: T) -> axum::http::StatusCode {
+    axum::http::StatusCode::INTERNAL_SERVER_ERROR
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     println!("before start");
@@ -62,17 +66,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .await?;
 
     println!("db pool created");
-    fn handle_error(error: BoxError) -> impl IntoResponse {
-        if error.is::<tower::timeout::error::Elapsed>() {
-            (StatusCode::REQUEST_TIMEOUT, ())
-        } else {
-            (StatusCode::INTERNAL_SERVER_ERROR, ())
-        }
-    }
     let middleware_stack = ServiceBuilder::new()
-        .layer(TraceLayer::new_for_http())
         .layer(AddExtensionLayer::new(pool))
         .layer(HandleErrorLayer::new(handle_error))
+        .layer(TraceLayer::new_for_http())
         .timeout(Duration::from_secs(10));
 
     let app = Router::new()

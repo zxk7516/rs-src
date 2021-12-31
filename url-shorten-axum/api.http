@@ -3,12 +3,12 @@ POST http://localhost:3412/api/create_short
 Content-Type: application/json
 
 {
-    "url": "https://www.google.com"
+    "url": "https://www.csdn.net"
 }
 
 
 ### get short redirect
-GET http://localhost:3412/AAAAAw==
+GET http://localhost:3412/DgAAAA==
 
 
 

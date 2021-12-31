@@ -126,6 +126,42 @@ fn main() {
         Test::a(test2.as_ref()),
         Test::b(test2.as_ref())
     );
+    Solution::min_sum_of_lengths(vec![1, 2, 2], 4);
+}
+struct Solution;
+impl Solution {
+    pub fn min_sum_of_lengths(
+        arr: Vec<i32>,
+        target: i32,
+    ) -> i32 {
+        let k_inf = i32::MAX;
+        let n = arr.len();
+        let min_lens = vec![k_inf; n];
+        let ans = k_inf;
+        let mut sum = 0;
+        let mut s = 0;
+        let mut min_len = k_inf;
+        for e in 0..n {
+            sum += arr[e];
+            while sum > target {
+                sum -= arr[s];
+                s += 1;
+            }
+            if sum == target {
+                let cur_len = e - s + 1;
+                if s > 0 && min_lens[s - 1] != k_inf {
+                    ans = i32::min(ans, cur_len + min_lens[s - 1]);
+                }
+                min_len = i32::min(min_len, cur_len);
+            }
+            min_lens[s] = min_len;
+        }
+        if ans >= k_inf {
+            -1
+        } else {
+            ans
+        }
+    }
 }
 
 // fn m() {
